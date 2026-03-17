@@ -5,16 +5,53 @@ const WebSocket = require('ws');
 const app = express();
 const server = http.createServer(app);
 
-// WebSocket server attached to HTTP server
 const wss = new WebSocket.Server({ server });
+
+let relay = null;
+let ship = null;
+
+console.log("ChatAHOY server running...");
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
 
-  ws.on('message', (message) => {
-    console.log('Received:', message.toString());
+  ws.on('message', (msg) => {
+    let data;
 
-    ws.send('Echo: ' + message.toString());
+    try {
+      data = JSON.parse(msg);
+    } catch {
+      data = { type: 'echo', message: msg.toString() };
+    }
+
+    console.log('Received:', data);
+
+    // SIMPLE TEST ECHO
+    if (data.type === 'echo') {
+      ws.send("Echo: " + data.message);
+    }
+
+    if (data.type === "relay_connect") {
+      relay = ws;
+      console.log("HomeShip connected");
+    }
+
+    if (data.type === "ship_connect") {
+      ship = ws;
+      console.log("Ship connected");
+    }
+
+    if (data.type === "sms_received") {
+      if (ship) {
+        ship.send(JSON.stringify(data));
+      }
+    }
+
+    if (data.type === "send_sms") {
+      if (relay) {
+        relay.send(JSON.stringify(data));
+      }
+    }
   });
 });
 
