@@ -27,9 +27,7 @@ wss.on('connection', (ws) => {
     console.log('Received:', data);
 
     // SIMPLE TEST ECHO
-    if (data.type === 'echo') {
-      ws.send("Echo: " + data.message);
-    }
+    ws.send("Echo: " + msg.toString());
 
     if (data.type === "relay_connect") {
       relay = ws;
