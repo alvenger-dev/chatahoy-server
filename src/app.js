@@ -1,15 +1,18 @@
-const WebSocket = require('ws');
+const http = require('http');
 
-const wss = new WebSocket.Server({ port: 10000 });
+const server = http.createServer();
 
-console.log("Simple WS server running...");
-
-wss.on('connection', (ws) => {
+server.on('upgrade', (req, socket, head) => {
   console.log("Client connected");
 
-  ws.on('message', (message) => {
-    console.log("Received:", message.toString());
+  socket.on('data', (data) => {
+    console.log("Received:", data.toString());
 
-    ws.send("Echo: " + message.toString());
+    // simple echo (raw)
+    socket.write(data);
   });
+});
+
+server.listen(10000, () => {
+  console.log("Simple WS server running on port 10000");
 });
