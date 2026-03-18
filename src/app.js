@@ -29,8 +29,11 @@ wss.on('connection', (ws) => {
 
     // ✅ CASE 1: PLAIN TEXT (Flutter test)
     if (!data) {
-      ws.send("Echo: " + msg.toString());
-      return;
+      ws.send(JSON.stringify({
+        type: "echo",
+        message: msg.toString()
+     }));
+     return;
     }
 
     console.log('Parsed:', data);
