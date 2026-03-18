@@ -18,41 +18,59 @@ wss.on('connection', (ws) => {
   ws.on('message', (msg) => {
     let data;
 
+    // ✅ TRY JSON PARSE
     try {
       data = JSON.parse(msg);
     } catch {
-      data = { type: 'echo', message: msg.toString() };
+      data = null;
     }
 
-    console.log('Received:', data);
+    console.log('Raw message:', msg.toString());
 
-    // SIMPLE TEST ECHO
-    ws.send("Echo: " + msg.toString());
+    // ✅ CASE 1: PLAIN TEXT (Flutter test)
+    if (!data) {
+      ws.send("Echo: " + msg.toString());
+      return;
+    }
 
+    console.log('Parsed:', data);
+
+    // ✅ CONNECTION TYPES
     if (data.type === "relay_connect") {
       relay = ws;
       console.log("HomeShip connected");
+      return;
     }
 
     if (data.type === "ship_connect") {
       ship = ws;
       console.log("Ship connected");
+      return;
     }
 
+    // ✅ SMS FROM RELAY → SEND TO SHIP
     if (data.type === "sms_received") {
       if (ship) {
         ship.send(JSON.stringify(data));
       }
+      return;
     }
 
+    // ✅ SEND SMS FROM APP → RELAY
     if (data.type === "send_sms") {
       if (relay) {
         relay.send(JSON.stringify(data));
       }
+      return;
     }
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
   });
 });
 
+// TEST ROUTE
 app.get('/', (req, res) => {
   res.send('ChatAHOY server is running');
 });
